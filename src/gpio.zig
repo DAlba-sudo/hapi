@@ -48,15 +48,9 @@ const Pin = struct {
 
     // configures this pin with a given function type
     pub fn FuncSelect(self: @This(), pin_type: PinFunction) !void {
-        // this is done so that the compiler can be assured that the shifted
-        // amount won't lead to undefined behavior.
-
         const shift_am: u5 = @truncate((self.n % 10) * 3);
-        //                                                ^^ is the max number that can 
-        //                                                   be represented in the register
         const value: u32 = 0 | @intFromEnum(pin_type);
 
-        self.pin_type = pin_type;
         self.fsel.* |= (value << shift_am);
     }
 
