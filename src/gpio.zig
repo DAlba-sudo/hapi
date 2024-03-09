@@ -116,8 +116,8 @@ fn CalculateOffset(pin: u6, data_granularity: u6) u32 {
 //
 // (Page. 67)
 // https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf
-const PinFunction = enum(u3) {
-    None = 0b0,
+const PinFunction = enum(u4) {
+    None = 0b1111,
     Input = 0b000,
     Output = 0b001,
     ALT0 = 0b100,
