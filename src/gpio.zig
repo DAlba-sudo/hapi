@@ -38,7 +38,6 @@ pub const Pins: [58]Pin = for (0..1) |_| {
 const Pin = struct {
     // attributes
     n: u6,                                      // the pin number
-    pin_type: PinFunction = PinFunction.None,   // the pin's set function
 
     // in-memory registers as pointers, actual addresses
     // are calculated with the CreatePin function.
@@ -62,29 +61,17 @@ const Pin = struct {
     }
 
     // sets the pin to "high"
-    pub fn Set(self: @This()) PinError!void {
-        try self.HasFunctionBeenSet();
-        if (self.pin_type == PinFunction.Input) {
-            // we do check to make sure that we are not setting a pin that
-            // has been designated as an input.
-            return PinError.ErrIncorrectPinFunction;
-        }
-
+    pub fn Set(self: @This()) void {
+        const value: u32 = 0b1;
         const shift_am: u5 = @truncate((self.n % 32));
-        self.set.* |= (0b1 << shift_am);
+        self.set.* |= (value << shift_am);
     }
 
     // sets the pin to "low"
-    pub fn Clear(self: @This()) !void {
-        try self.HasFunctionBeenSet();
-        if (self.pin_type == PinFunction.Input) {
-            // we do check to make sure that we are not setting a pin that
-            // has been designated as an input.
-            return PinError.ErrIncorrectPinFunction;
-        }
-
+    pub fn Clear(self: @This()) void {
+        const value: u32 = 0b1;
         const shift_am: u5 = @truncate((self.n % 32));
-        self.clear.* |= (0b1 << shift_am);
+        self.clear.* |= (value << shift_am);
     }
 
     // performs a basic "read" of the pin.
@@ -92,19 +79,6 @@ const Pin = struct {
         const shift_am: u5 = @truncate((self.n % 32));
         const returned_value: u1 = 0b1 & (self.level.* >> shift_am);
         return returned_value;
-    }
-
-    // enforces that the programmer must consciously set a function to the
-    // pin they are trying to use. There is no direct enforcement between the
-    // action they are doing and the function that's been selected, since
-    // ALT function may also require setting and clearing and this gets the
-    // point of safety across without sacrificing readability.
-    fn HasFunctionBeenSet(self: @This()) PinError!void {
-        if (self.pin_type == PinFunction.None) {
-            // we want to explicitly define the pin's function,
-            // not doing so may cause potentially unexpected behavior.
-            return PinError.ErrPinFunctionNotSet;
-        }
     }
 };
 
@@ -152,13 +126,6 @@ const PinFunction = enum(u3) {
     ALT3 = 0b111,
     ALT4 = 0b011,
     ALT5 = 0b010,
-};
-
-// in an effort to use zig errors as part of the drivers, this error set 
-// contains errors that can be encountered when operating with the pins.
-const PinError = error{
-    ErrPinFunctionNotSet,
-    ErrIncorrectPinFunction,
 };
 
 test "offset calculation is correct" {
